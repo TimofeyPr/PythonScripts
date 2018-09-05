@@ -1,10 +1,14 @@
 import os
-list1 = os.listdir()
+DirName = input("Путь к директории: ")
+list1 = os.listdir(DirName)
 filename = input('Имя файла для вывода результатов: ')
 f = open(filename, 'w', encoding='utf-8')
-for n in range (0, len(list1)):
-        if os.path.isdir(list1[n]):
-                f.write ('+- ' + list1[n] + '\n')
-        else:
-                f.write ('-- ' + list1[n] + '\n')
+for n in list1:
+        path = os.path.join(DirName, n)
+        if os.path.isdir(path):
+                f.write ('+- ' + n + '\n')
+for n in list1:
+        path = os.path.join(DirName, n)
+        if not(os.path.isdir(path)):
+                f.write ( n + '\n')
 f.close()
