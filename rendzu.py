@@ -13,7 +13,6 @@ class Game(QMainWindow):
 
         self.initUI()
 
-
     def initUI(self):
 
         self.tboard = Board(self)
@@ -22,15 +21,14 @@ class Game(QMainWindow):
         self.statusbar = self.statusBar()
 
 #       Задать размеры окна
-        self.setFixedSize(450, 450)
-#        self.resize(450, 450)
+#        self.setFixedSize(450, 450)
+        self.resize(450, 450)
 #       Задать положение окна
         self.center()
 #       Задать текст в заголовке окна
         self.setWindowTitle('5 в ряд')
         self.show()
-
-
+      
     def center(self):
 
         screen = QDesktopWidget().screenGeometry()
@@ -38,12 +36,26 @@ class Game(QMainWindow):
         self.move((screen.width()-size.width())/2,
             (screen.height()-size.height())/2)
 
+    def mouseReleaseEvent(self, e):
+#       Определить, внутри какой ячейки щелкнули мышкой
+        CellX = int(e.x() / self.tboard.CellWidth)
+        CellY = int(e.y() / self.tboard.CellHeight)
+#       Записать, в какую ячейку поставили крестик
+        self.tboard.Cell[CellX][CellY] = Figure.XFigure
+#       Нарисовать крестик на доске
+#        self.tboard.drawFigure(CellX, CellY, Figure.XFigure)
+#        print(CellX, CellY, Figure.XFigure)
+        self.tboard.update()
 
+        
 class Board(QFrame):
 
 #   Задать количество ячеек игрового поля по горизонтали и вертикали
     CellCountX = 15
     CellCountY = 15
+    CellWidth = 0
+    CellHeight = 0
+    Cell = []
         
     def __init__(self, parent):
         super().__init__(parent)
@@ -57,13 +69,13 @@ class Board(QFrame):
     def clearBoard(self):
 
 #       Инициализировать массив ячеек игрового поля
-        Board.Cell = []
+        self.Cell = []
 #       Заполнить игровую матрицу пустыми значениями
-        for i in range(Board.CellCountX):
-            Board.Cell.append([])
-            for j in range(Board.CellCountY):
-                Board.Cell[i].append(Figure.NoFigure)
-
+        for i in range(self.CellCountX):
+            self.Cell.append([])
+            for j in range(self.CellCountY):
+                self.Cell[i].append(Figure.NoFigure)
+        
 
     def paintEvent(self, e):
 
@@ -71,14 +83,14 @@ class Board(QFrame):
 
     def paintboard(self):
 
-        mainWindow = QMainWindow()
+#        mainWindow = QMainWindow()
 
 #       Получить размеры игрового окна        
         width = self.width()
         height = self.height()
 #       Вычислить размеры ячейки по размеру игрового окна и количеству ячеек
-        self.CellWidth = width /(self.CellCountX)
-        self.CellHeight = height/ (self.CellCountY)
+        self.CellWidth = width /self.CellCountX
+        self.CellHeight = height / self.CellCountY
 
 #       Нарисовать сетку игрового поля        
         Color = QColor(0xCCCCCC)
@@ -88,21 +100,22 @@ class Board(QFrame):
         qp.setPen(pen)
         for i in range(self.CellCountX-1):
             qp.drawLine((i+1)*self.CellWidth, 0, (i+1)*self.CellWidth, height)
-        for i in range(self.CellCountY-1):
+        for i in range(self.CellCountY):
             qp.drawLine(0, (i+1)*self.CellHeight, width, (i+1)*self.CellHeight)
         qp.end()
         
 #       Перерисовать все фигуры на доске
-        for i in range(Board.CellCountX):
-            for j in range(Board.CellCountY):
-               self.drawFigure(i+1,j+1, Board.Cell[i][j])
+        for i in range(self.CellCountX):
+            for j in range(self.CellCountY):
+               self.drawFigure(i+1,j+1, self.Cell[i][j])
 
+        
 #       Нарисовать крестик или нолик
     def drawFigure(self, x, y, shape):
         if shape == Figure.NoFigure:
-                return
+            return
 #       Задать масштаб фигуры по отношению к ячейке
-        k=0.5
+        k = 0.5
 
 #       Задать цвет фигуры в зависимости от фигуры        
         if shape == Figure.XFigure:
@@ -114,6 +127,7 @@ class Board(QFrame):
         pen = QPen(Color, 3, Qt.SolidLine)
         qp = QPainter()
         qp.begin(self)
+        
         qp.setPen(pen)
         if shape == Figure.OFigure:
             qp.drawEllipse((x-1)*self.CellWidth + (1-k)/2*self.CellWidth, (y-1)*self.CellHeight + (1-k)/2*self.CellHeight, self.CellWidth*k, self.CellHeight*k)
@@ -121,6 +135,7 @@ class Board(QFrame):
             qp.drawLine((x-1)*self.CellWidth + (1-k)/2*self.CellWidth, (y-1)*self.CellHeight + (1-k)/2*self.CellHeight, x*self.CellWidth - (1-k)/2*self.CellWidth, (y)*self.CellHeight - (1-k)/2*self.CellHeight)
             qp.drawLine(x*self.CellWidth - (1-k)/2*self.CellWidth, (y-1)*self.CellHeight + (1-k)/2*self.CellHeight, (x-1)*self.CellWidth + (1-k)/2*self.CellWidth,  (y)*self.CellHeight - (1-k)/2*self.CellHeight)
         qp.end()
+
         
 class Figure(object):
 
