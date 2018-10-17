@@ -51,6 +51,7 @@ class Game(QMainWindow):
 
 
     def MachineMove(self):
+#       Ставить нолик случайным образом на пустое поле
         CellX = random.randint(0, self.tboard.CellCountX-1)
         CellY = random.randint(0, self.tboard.CellCountY-1)
         while self.tboard.Cell[CellX][CellY] != Figure.NoFigure:
