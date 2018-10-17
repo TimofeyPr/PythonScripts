@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import random
 from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication
 from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -41,11 +42,23 @@ class Game(QMainWindow):
         CellX = int(e.x() / self.tboard.CellWidth)
         CellY = int(e.y() / self.tboard.CellHeight)
 #       Записать, в какую ячейку поставили крестик
-        self.tboard.Cell[CellX][CellY] = Figure.XFigure
-#       Нарисовать крестик на доске
-#        self.tboard.drawFigure(CellX, CellY, Figure.XFigure)
-#        print(CellX, CellY, Figure.XFigure)
-        self.tboard.update()
+        if self.tboard.Cell[CellX][CellY] == Figure.NoFigure:
+            self.tboard.Cell[CellX][CellY] = Figure.XFigure
+#           Перерисовать доску с поставленными крестиками и ноликами
+            self.tboard.update()
+#           Сделать ответный ход
+            self.MachineMove()
+
+
+    def MachineMove(self):
+        CellX = random.randint(0, self.tboard.CellCountX-1)
+        CellY = random.randint(0, self.tboard.CellCountY-1)
+        while self.tboard.Cell[CellX][CellY] != Figure.NoFigure:
+            CellX = random.randint(0, self.tboard.CellCountX-1)
+            CellY = random.randint(0, self.tboard.CellCountY-1)
+        self.tboard.Cell[CellX][CellY] = Figure.OFigure
+#       Перерисовать доску с поставленными крестиками и ноликами
+        self.tboard.update()            
 
         
 class Board(QFrame):
@@ -82,8 +95,6 @@ class Board(QFrame):
         self.paintboard()
 
     def paintboard(self):
-
-#        mainWindow = QMainWindow()
 
 #       Получить размеры игрового окна        
         width = self.width()
