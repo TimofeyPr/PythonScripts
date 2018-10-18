@@ -16,6 +16,7 @@ class Game(QMainWindow):
 
     def initUI(self):
 
+        self.IsGameOverFlag = False
         self.tboard = Board(self)
         self.setCentralWidget(self.tboard)
 
@@ -38,26 +39,136 @@ class Game(QMainWindow):
             (screen.height()-size.height())/2)
 
     def mouseReleaseEvent(self, e):
-#       Определить, внутри какой ячейки щелкнули мышкой
-        CellX = int(e.x() / self.tboard.CellWidth)
-        CellY = int(e.y() / self.tboard.CellHeight)
-#       Записать, в какую ячейку поставили крестик
-        if self.tboard.Cell[CellX][CellY] == Figure.NoFigure:
-            self.tboard.Cell[CellX][CellY] = Figure.XFigure
-#           Перерисовать доску с поставленными крестиками и ноликами
-            self.tboard.update()
-#           Сделать ответный ход
-            self.MachineMove()
+        if not(self.IsGameOverFlag):
+#           Определить, внутри какой ячейки щелкнули мышкой
+            CellX = int(e.x() / self.tboard.CellWidth)
+            CellY = int(e.y() / self.tboard.CellHeight)
+#           Записать, в какую ячейку поставили крестик
+            if self.tboard.Cell[CellX][CellY] == Figure.NoFigure:
+                self.tboard.Cell[CellX][CellY] = Figure.XFigure
+                self.IsGameOver(Figure.XFigure)
+#               Перерисовать доску с поставленными крестиками и ноликами
+                self.tboard.update()
+#               Сделать ответный ход
+                if not(self.IsGameOverFlag):
+                    self.MachineMove()
 
+    def IsGameOver(self, fig):
+        for x in range(self.tboard.CellCountX):
+            for y in range(self.tboard.CellCountY):
+                if x < self.tboard.CellCountX-4 and self.tboard.Cell[x][y] == fig and \
+                   self.tboard.Cell[x+1][y] == fig and \
+                   self.tboard.Cell[x+2][y] == fig and \
+                   self.tboard.Cell[x+3][y] == fig and \
+                   self.tboard.Cell[x+4][y] == fig: 
+                       self.IsGameOverFlag = True
+                       self.tboard.Cell[x][y] = fig + 2
+                       self.tboard.Cell[x+1][y] = fig + 2
+                       self.tboard.Cell[x+2][y] = fig + 2
+                       self.tboard.Cell[x+3][y] = fig + 2
+                       self.tboard.Cell[x+4][y] = fig + 2
+                if x < self.tboard.CellCountX-4 and y < self.tboard.CellCountY-4 and self.tboard.Cell[x][y] == fig and \
+                   self.tboard.Cell[x+1][y+1] == fig and \
+                   self.tboard.Cell[x+2][y+2] == fig and \
+                   self.tboard.Cell[x+3][y+3] == fig and \
+                   self.tboard.Cell[x+4][y+4] == fig: 
+                       self.IsGameOverFlag = True
+                       self.tboard.Cell[x][y] = fig + 2
+                       self.tboard.Cell[x+1][y+1] = fig + 2
+                       self.tboard.Cell[x+2][y+2] = fig + 2
+                       self.tboard.Cell[x+3][y+3] = fig + 2
+                       self.tboard.Cell[x+4][y+4] = fig + 2
+                if y < self.tboard.CellCountY-4 and self.tboard.Cell[x][y] == fig and \
+                   self.tboard.Cell[x][y+1] == fig and \
+                   self.tboard.Cell[x][y+2] == fig and \
+                   self.tboard.Cell[x][y+3] == fig and \
+                   self.tboard.Cell[x][y+4] == fig: 
+                       self.IsGameOverFlag = True
+                       self.tboard.Cell[x][y] = fig + 2
+                       self.tboard.Cell[x][y+1] = fig + 2
+                       self.tboard.Cell[x][y+2] = fig + 2
+                       self.tboard.Cell[x][y+3] = fig + 2
+                       self.tboard.Cell[x][y+4] = fig + 2
+                if x < self.tboard.CellCountX-4 and y > 4 and self.tboard.Cell[x][y] == fig and \
+                   self.tboard.Cell[x+1][y-1] == fig and \
+                   self.tboard.Cell[x+2][y-2] == fig and \
+                   self.tboard.Cell[x+3][y-3] == fig and \
+                   self.tboard.Cell[x+4][y-4] == fig: 
+                       self.IsGameOverFlag = True
+                       self.tboard.Cell[x][y] = fig + 2
+                       self.tboard.Cell[x+1][y-1] = fig + 2
+                       self.tboard.Cell[x+2][y-2] = fig + 2
+                       self.tboard.Cell[x+3][y-3] = fig + 2
+                       self.tboard.Cell[x+4][y-4] = fig + 2
+                   
 
     def MachineMove(self):
-#       Ставить нолик случайным образом на пустое поле
-        CellX = random.randint(0, self.tboard.CellCountX-1)
-        CellY = random.randint(0, self.tboard.CellCountY-1)
-        while self.tboard.Cell[CellX][CellY] != Figure.NoFigure:
+
+#       Для временной матрицы перебираем все ячейки, чтобы определить, куда ставить следующий нолик
+#       Раз уж перебираем все поле, проверяем только следующие направления: -, \, |, /. 
+        self.MaxWeight = 0
+        for i in range(self.tboard.CellCountX):
+            for j in range(self.tboard.CellCountY):
+                self.CurrWeight = 0
+#       Проверить, не является ли данная ячейка четвертым крестиком
+#       по диагонали вверх-влево и при этом свободной
+                if i > 3 and j > 3 and self.tboard.Cell[i][j] == Figure.NoFigure:
+                    if self.tboard.Cell[i-1][j-1] == Figure.XFigure and \
+                       self.tboard.Cell[i-2][j-2] == Figure.XFigure and \
+                       self.tboard.Cell[i-3][j-3] == Figure.XFigure and \
+                       self.tboard.Cell[i-4][j-4] != Figure.OFigure:
+                           self.CurrWeight = 1000
+                           if self.CurrWeight > self.MaxWeight:
+                               self.MaxWeight = self.CurrWeight
+                               CellX = i
+                               CellY = j
+#       Проверить, не является ли данная ячейка четвертым крестиком
+#       по диагонали вверх-вправо и при этом свободной
+                if i < (self.tboard.CellCountX - 4) and j > 3 and self.tboard.Cell[i][j] == Figure.NoFigure:
+                    if self.tboard.Cell[i+1][j-1] == Figure.XFigure and \
+                       self.tboard.Cell[i+2][j-2] == Figure.XFigure and \
+                       self.tboard.Cell[i+3][j-3] == Figure.XFigure and \
+                       self.tboard.Cell[i+4][j-4] != Figure.OFigure:
+                           self.CurrWeight = 1000 + self.CurrWeight
+                           if self.CurrWeight > self.MaxWeight:
+                               self.MaxWeight = self.CurrWeight
+                               CellX = i
+                               CellY = j
+#       Проверить, не является ли данная ячейка четвертым крестиком
+#       по диагонали вниз-влево и при этом свободной
+                if i > 3 and j < (self.tboard.CellCountY - 4) and self.tboard.Cell[i][j] == Figure.NoFigure:
+                    if self.tboard.Cell[i-1][j+1] == Figure.XFigure and \
+                       self.tboard.Cell[i-2][j+2] == Figure.XFigure and \
+                       self.tboard.Cell[i-3][j+3] == Figure.XFigure and \
+                       self.tboard.Cell[i-4][j+4] != Figure.OFigure:
+                           self.CurrWeight = 1000 + self.CurrWeight
+                           if self.CurrWeight > self.MaxWeight:
+                               self.MaxWeight = self.CurrWeight
+                               CellX = i
+                               CellY = j
+#       Проверить, не является ли данная ячейка четвертым крестиком
+#       по диагонали вниз-вправо и при этом свободной
+                if i < (self.tboard.CellCountX - 4) and j < (self.tboard.CellCountY - 4) and self.tboard.Cell[i][j] == Figure.NoFigure:
+                    if self.tboard.Cell[i+1][j+1] == Figure.XFigure and \
+                       self.tboard.Cell[i+2][j+2] == Figure.XFigure and \
+                       self.tboard.Cell[i+3][j+3] == Figure.XFigure and \
+                       self.tboard.Cell[i+4][j+4] != Figure.OFigure:
+                           self.CurrWeight = 1000 + self.CurrWeight
+                           if self.CurrWeight > self.MaxWeight:
+                               self.MaxWeight = self.CurrWeight
+                               CellX = i
+                               CellY = j                               
+                            
+
+#        Если комбинации нет, ставим случайным образом                    
+        if self.MaxWeight == 0:            
             CellX = random.randint(0, self.tboard.CellCountX-1)
             CellY = random.randint(0, self.tboard.CellCountY-1)
+            while self.tboard.Cell[CellX][CellY] != Figure.NoFigure:
+                CellX = random.randint(0, self.tboard.CellCountX-1)
+                CellY = random.randint(0, self.tboard.CellCountY-1)
         self.tboard.Cell[CellX][CellY] = Figure.OFigure
+        self.IsGameOver(Figure.OFigure)
 #       Перерисовать доску с поставленными крестиками и ноликами
         self.tboard.update()            
 
@@ -134,16 +245,17 @@ class Board(QFrame):
             Color = QColor(0x0000CC)
         elif shape == Figure.OFigure:
             Color = QColor(0xCC0000)
+        elif shape == Figure.WinX or shape == Figure.WinO:
+            Color = QColor(0x00CC00)
 
 #       Нарисовать объект
         pen = QPen(Color, 3, Qt.SolidLine)
         qp = QPainter()
         qp.begin(self)
-        
         qp.setPen(pen)
-        if shape == Figure.OFigure:
+        if shape == Figure.OFigure or shape == Figure.WinO:
             qp.drawEllipse((x-1)*self.CellWidth + (1-k)/2*self.CellWidth, (y-1)*self.CellHeight + (1-k)/2*self.CellHeight, self.CellWidth*k, self.CellHeight*k)
-        elif shape == Figure.XFigure:
+        elif shape == Figure.XFigure or shape == Figure.WinX:
             qp.drawLine((x-1)*self.CellWidth + (1-k)/2*self.CellWidth, (y-1)*self.CellHeight + (1-k)/2*self.CellHeight, x*self.CellWidth - (1-k)/2*self.CellWidth, (y)*self.CellHeight - (1-k)/2*self.CellHeight)
             qp.drawLine(x*self.CellWidth - (1-k)/2*self.CellWidth, (y-1)*self.CellHeight + (1-k)/2*self.CellHeight, (x-1)*self.CellWidth + (1-k)/2*self.CellWidth,  (y)*self.CellHeight - (1-k)/2*self.CellHeight)
         qp.end()
@@ -152,8 +264,10 @@ class Board(QFrame):
 class Figure(object):
 
         NoFigure = 0
-        XFigure = 2
-        OFigure = 1
+        XFigure = 1
+        OFigure = 2
+        WinX = 3
+        WinO = 4
 
 
 if __name__ == '__main__':
